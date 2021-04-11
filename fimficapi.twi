@@ -1,0 +1,76 @@
+{#align=center ** api}
+root: http://www.fimfiction.net/ajax/ (at least i /think/ http works)
+requests with * _require_ the "signature set": `signature`, `signature_nonce`, `signature_timestamp` in the body
+|#h{#sub {#sup _POST}}
+login
+|{|`application/x-www-form-urlencoded`}
+`username`, `password`, `keep_logged_in` "true" or "false"
+also an optional `otp` field that is unused afaik|response headers set `session_token` and `signing_key` cookies|
+|#h{#sub {#sup _POST}} 
+logout
+||response headers clear auth cookies|
+|#h{#sub {#sup _GET}}
+currently-reading
+||returns json object `{content: "escaped html"}` containing the currently reading widget element|
+|#h {#sub {#sup _POST*}}
+stories/<id>/bookmark
+|{|`multipart/form-data` (do boundaries always look so dumb?)}
+`chapter_id` from `[data-chapter]` element attribute
+`hash` is calculated from current paragraph
+`progress` is a whole-number percentage|
+|#h {#sub {#sup _POST*}}
+bookshelves/<id>/items
+|{|`application/x-www-form-urlencoded`}
+`story` is story id|returns json object with properties `bookshelf` `story` `added` `num_added` `num_unread`|
+|#h {#sub {#sup _DELETE*}}
+bookshelves/<id>/items/<story id>|{|`application/x-www-form-urlencoded`}|same as above|
+|#h {#sub {#sup _GET}}
+bookshelves/add-story-popup
+|{|`application/x-www-form-urlencoded`}
+`story` is story id|returns json-encoded html containing the bookshelves widget|
+|#h{#sub {#sup _POST*}}
+bookshelves[/<id>]
+|{|`application/x-www-form-urlencoded`}
+`bookshelf` is shelf id (0 if new)
+`name` is string
+`description` is string
+`colour` is hex code (ex. 00ff00)
+`icon` can be a fontawesome icon name
+`privacy` is 0-2
+(private=0, unlisted=2, public=1)
+`quick_add`, `email_on_update`, `track_blogs`, `track_unread` are 1 or not present|returns json object with the `id` property of the bookshelf and a bunch of escaped html elements to update the page with|
+|#h {#sub {#sup _POST}}
+users/<id>/infocard
+||returns json-encoded infocard element|
+|#h {#sub {#sup _POST*}}
+chapters/<id>/read|{|`application/x-www-form-urlencoded`}|returns updated read status in json object
+`bool read` (should be true)|
+|#h {#sub {#sup _DELETE*}}
+chapters/<id>/read|{|`application/x-www-form-urlencoded`}|returns updated read status in json object
+`bool read` (should be false)|
+|#h,c=#ff0000 {#sub {#sup _GET}}
+chapters/<id>/read||returns read status?|
+
+--
+
+{#align=center ** locations of relevant data on a few pages}
+|#h,rs=7 all pages|#cs=2 {#align=center properties of `querySel(".navigation-drawer-container")["data-html-config"]`}|
+|#rs=2 logged in?|`htmlConfig.loggedIn`|
+|`bool`|
+|#rs=2 user info
+|`htmlConfig.user`|
+|`{"name", "url", "avatar", "backgroundColor"}`|
+|#rs=2 bookshelves
+|`htmlConfig.bookshelves`|
+|`[]{"url", "numUnread", "name", "iconHtml", "style"}`|
+|#h,rs=3 story|story title|`.story_name`|
+|author||
+||
+|#h,rs=7 chapter
+|story title/link|`.info-container > div > h1 > a`|
+|author|`.info-container .author > a`|
+|story description|`.info-container > div > div > p`|
+|chapter title|`#chapter_title`|
+|author's note (top)|`.authors-note["style"^="margin-top"]`|
+|parent of chapter \~paragraph elements|`#chapter-body > div`|
+|author's note (bottom)|`.authors-note["style"^="margin-bottom"]`|
